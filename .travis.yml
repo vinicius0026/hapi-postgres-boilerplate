@@ -13,5 +13,7 @@ addons:
     - g++-4.8
 env:
   - TRAVIS=travis CXX=g++-4.8
+before_script:
+  - psql -c 'create database hapi_postgres_boilerplate_test;' -U postgres
 script:
   - npm test && npm run coverage
