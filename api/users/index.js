@@ -2,7 +2,7 @@
 
 const Joi = require('joi')
 
-const User = require('./model')()
+const User = require('./model')
 const Handlers = require('./handlers')
 
 const internals = {}
@@ -21,7 +21,7 @@ exports.register.attributes = {
 }
 
 internals.registerRoutes = function (server, next) {
-  internals.options.r = server.app.r
+  internals.options.bookshelf = server.app.bookshelf
   internals.handlers = Handlers(internals.options)
 
   server.route([

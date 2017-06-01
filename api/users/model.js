@@ -5,6 +5,7 @@ const Boom = require('boom')
 const Joi = require('joi')
 
 const internals = {}
+let User
 
 internals.model = {
   id: Joi.number().min(0),
@@ -16,14 +17,18 @@ internals.model = {
 
 internals.SALT_ROUNDS = 10
 
-module.exports = function (_di) {
-  const di = _di || {}
-
+module.exports = function (di) {
   Object.assign(internals, di)
+
+  const { bookshelf } = internals
+
+  User = bookshelf.Model.extend({
+    tableName: 'users',
+    hidden: ['hash']
+  })
 
   return {
     getValidatedUser,
-    model: internals.model,
     create,
     read,
     update,
@@ -32,34 +37,22 @@ module.exports = function (_di) {
   }
 }
 
-function create (data) {
-  const { r } = internals
+module.exports.model = internals.model
 
-  return r.table('users').filter({ username: data.username }).run()
-    .then(users => {
-      if (users.length) {
-        return Promise.reject(Boom.badRequest('Username already taken'))
-      }
-      return Bcrypt.hash(data.password, internals.SALT_ROUNDS)
-    })
+function create (data) {
+  return Bcrypt.hash(data.password, internals.SALT_ROUNDS)
     .then(hash => {
       delete data.password
       const user = Object.assign({}, data, { hash })
-      return r.table('users').insert(user).run()
+      return User.forge(user).save()
     })
-    .then(result => {
-      return Promise.resolve(result.generated_keys[0])
-    })
+    .then(user => user.get('id'))
 }
 
 function read (id) {
-  return internals.r.table('users').get(id).pluck('id', 'username', 'scope').run()
-    .catch(err => {
-      if (err.message.match(/^Cannot perform pluck on a non-object non-sequence `null`/)) {
-        return Promise.reject(Boom.notFound('User not found'))
-      }
-      throw err
-    })
+  return User.forge({ id })
+    .fetch()
+    .then(user => user.toJSON())
 }
 
 function update (id, data) {
@@ -75,59 +68,67 @@ function update (id, data) {
 
       return data
     })
-    .then(data => internals.r.table('users').get(id).update(data, { returnChanges: true }).run())
-    .then(result => {
-      if (result.skipped === 1) {
-        return Promise.reject(Boom.notFound('User not found'))
-      }
-      return Promise.resolve(result.changes[0].new_val)
+    .then(data => {
+      return User.forge({ id })
+        .fetch({ require: true })
+        .then(user => user.save(data))
+        .catch(err => {
+          if (err.message === 'EmptyResponse') {
+            return Boom.notFound('User not found')
+          }
+
+          throw err
+        })
     })
 }
 
 function remove (id) {
-  return internals.r.table('users').get(id).delete().run()
-    .then(result => {
-      if (result.deleted === 0) {
-        return Promise.reject(Boom.notFound('User not found'))
+  return User.forge({ id })
+    .fetch({ require: true })
+    .then(user => {
+      return user.destroy()
+    })
+    .catch(err => {
+      if (err.message === 'EmptyResponse') {
+        return Boom.notFound('User not found')
       }
-      return Promise.resolve()
+
+      return Boom.wrap(err)
     })
 }
 
 function list ({ page, limit }) {
-  return Promise.all([
-    internals.r.table('users').count().run(),
-    internals.r.table('users').slice((page - 1) * limit, page * limit).withFields('id', 'username', 'scope').run()
-  ])
-  .then(([totalItems, data]) => ({
-    pagination: {
-      totalItems,
-      page,
-      limit
-    },
-    data
-  }))
+  return User.fetchPage({ page, pageSize: limit })
+    .then(results => {
+      return {
+        pagination: {
+          totalItems: results.pagination.rowCount,
+          page,
+          limit
+        },
+        data: results.toJSON()
+      }
+    })
 }
 
 function getValidatedUser (username, password) {
-  return internals.r.table('users').filter({ username: username }).run()
-    .then(users => {
-      if (users.length === 0) {
-        return Promise.resolve()
-      }
-
-      const user = users[0]
-
-      return Bcrypt.compare(password, user.hash)
+  return User.forge({ username })
+    .fetch({ require: true })
+    .then(user => {
+      return Bcrypt.compare(password, user.get('hash'))
         .then(validPass => {
           if (!validPass) {
             return Promise.resolve()
           }
 
-          const _user = Object.assign({}, user)
-          delete _user.password
-          delete _user.hash
-          return Promise.resolve(_user)
+          return Promise.resolve(user.toJSON())
         })
+    })
+    .catch(err => {
+      if (err.message === 'EmptyResponse') {
+        return Promise.resolve()
+      }
+
+      throw err
     })
 }
