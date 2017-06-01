@@ -2,7 +2,6 @@
 
 const Code = require('code')
 const Lab = require('lab')
-const Migrate = require('rethinkdb-migrate').migrate
 const Path = require('path')
 
 const lab = exports.lab = Lab.script()
@@ -12,27 +11,27 @@ const it = lab.test
 const before = lab.before
 const after = lab.after
 
+const dbConfig = require('../../../knexfile')
+
 const Config = require('../../../lib/config')
-const dbConfig = require('../../../migrations/config')
-const UserModel = require('../../../api/users/model')
 const Server = require('../../../lib')
+
+const knex = require('knex')(dbConfig)
+const bookshelf = require('bookshelf')(knex)
+const UserModel = require('../../../api/users/model')({ bookshelf })
 
 const internals = {}
 
 describe('User API Tests', () => {
-  const migrationConfig = Object.assign({}, dbConfig, { relativeTo: Path.resolve(__dirname, '../../../') })
-
   before({ timeout: 10000 }, done => {
-    Migrate(Object.assign({}, migrationConfig, { op: 'up' }))
-      .then(done)
+    knex.migrate.latest()
+      .then(() => done())
       .catch(done)
   })
 
   after({ timeout: 10000 }, done => {
-    Migrate(Object.assign({}, migrationConfig, { op: 'down' }))
-      .then(() => {
-        done()
-      })
+    knex.migrate.rollback()
+      .then(() => done())
       .catch(done)
   })
 
@@ -53,11 +52,17 @@ describe('User API Tests', () => {
           })
           .then(res => {
             expect(res.statusCode).to.equal(200)
-            const list = res.result
+            const list = res.result.data
             expect(list).to.be.an.array()
             list.every(item => {
               expect(item.username).to.be.a.string()
               expect(item.scope).to.be.an.array()
+            })
+            const pagination = res.result.pagination
+            expect(pagination).to.equal({
+              totalItems: 1,
+              page: 1,
+              limit: 10
             })
             server.stop(done)
           })
@@ -74,7 +79,7 @@ describe('User API Tests', () => {
         registrations: [
           { plugin: { register: './lib/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
           { plugin: { register: './api/users' } },
-          { plugin: { register: './lib/db', options: { db: 'hapi_rethinkdb_boilerplate_test', port: 28016, silent: true } } },
+          { plugin: { register: './lib/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } },
           { plugin: 'hapi-auth-cookie' }
         ]
       }

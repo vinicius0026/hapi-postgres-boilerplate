@@ -47,12 +47,26 @@ function create (data) {
       return User.forge(user).save()
     })
     .then(user => user.get('id'))
+    .catch(err => {
+      if (err.constraint === 'users_username_unique') {
+        return Promise.reject(Boom.badRequest('Username already taken'))
+      }
+
+      throw err
+    })
 }
 
 function read (id) {
   return User.forge({ id })
-    .fetch()
+    .fetch({ require: true })
     .then(user => user.toJSON())
+    .catch(err => {
+      if (err.message === 'EmptyResponse') {
+        return Promise.reject(Boom.notFound('User not found'))
+      }
+
+      throw err
+    })
 }
 
 function update (id, data) {
@@ -74,7 +88,7 @@ function update (id, data) {
         .then(user => user.save(data))
         .catch(err => {
           if (err.message === 'EmptyResponse') {
-            return Boom.notFound('User not found')
+            return Promise.reject(Boom.notFound('User not found'))
           }
 
           throw err
@@ -90,7 +104,7 @@ function remove (id) {
     })
     .catch(err => {
       if (err.message === 'EmptyResponse') {
-        return Boom.notFound('User not found')
+        return Promise.reject(Boom.notFound('User not found'))
       }
 
       return Boom.wrap(err)
