@@ -9,8 +9,12 @@ const describe = lab.experiment
 const expect = Code.expect
 const it = lab.test
 
+const dbConfig = require('../knexfile')
+const knex = require('knex')(dbConfig)
+const bookshelf = require('bookshelf')(knex)
+
 const Config = require('../lib/config')
-const UserModel = require('../api/users/model')()
+const UserModel = require('../api/users/model')({ bookshelf })
 const Server = require('../lib')
 
 const internals = {}
