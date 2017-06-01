@@ -48,7 +48,7 @@ function create (data) {
     })
     .then(user => user.get('id'))
     .catch(err => {
-      if (err.constraint === 'users_username_unique') {
+      if (err.message.match(/violates unique constraint "users_username_unique"/)) {
         return Promise.reject(Boom.badRequest('Username already taken'))
       }
 
