@@ -100,9 +100,14 @@ router.
 
 PostgreSQL is used as Database, with Bookshelf as ORM and knex as query builder.
 
+Knex is used to run migrations. See [knex docs](http://knexjs.org/#Migrations)
+for details on how to create and run migrations.
+
 ## Configuration
 
-All configuration is stored in `lib/config.js`, using [Confidence](https://github.com/hapijs/confidence). Configuration for migrations is in `migrations/config.js`.
+All configuration is stored in `lib/config.js`, using
+[Confidence](https://github.com/hapijs/confidence). Configuration for migrations
+is in `migrations/config.js`.
 
 ## Running locally
 
