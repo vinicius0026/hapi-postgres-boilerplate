@@ -15,7 +15,9 @@
   },
   "keywords": [
     "hapijs",
-    "boilerplate"
+    "boilerplate",
+    "postgresql",
+    "postgres"
   ],
   "author": "Vinicius Teixeira <vinicius0026@gmail.com>",
   "license": "MIT",
@@ -32,6 +34,7 @@
   },
   "dependencies": {
     "bcrypt": "^1.0.2",
+    "bookshelf": "^0.10.3",
     "boom": "^4.2.0",
     "confidence": "^3.0.2",
     "dotenv": "^4.0.0",
@@ -44,8 +47,9 @@
     "hapi-auth-cookie": "^6.1.1",
     "inert": "^4.1.0",
     "joi": "^10.1.0",
+    "knex": "^0.13.0",
     "lout": "^10.0.0",
-    "rethinkdb-migrate": "^1.0.2",
+    "pg": "^6.2.3",
     "rethinkdbdash": "^2.3.28",
     "vision": "^4.1.1"
   }
