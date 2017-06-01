@@ -2,7 +2,6 @@
 
 const Code = require('code')
 const Lab = require('lab')
-const Migrate = require('rethinkdb-migrate').migrate
 const Path = require('path')
 
 const lab = exports.lab = Lab.script()
@@ -13,30 +12,32 @@ const before = lab.before
 const after = lab.after
 
 const Config = require('../lib/config')
-const dbConfig = require('../migrations/config')
+const dbConfig = require('../knexfile')
 const Server = require('../lib')
+
+const knex = require('knex')(dbConfig)
 
 const internals = {}
 
 describe('Auth', () => {
-  const migrationConfig = Object.assign({}, dbConfig, { relativeTo: Path.resolve(__dirname, '../') })
   const admin = {
     username: 'admin',
-    password: 'p4$$w0Rd',
+    password: 'admin',
     scope: ['user', 'admin']
   }
 
-  before({ timeout: 10000 }, done => {
-    Migrate(Object.assign({}, migrationConfig, { op: 'up' }))
+  before(done => {
+    knex.migrate.latest()
       .then(() => done())
       .catch(done)
   })
 
-  after({ timeout: 10000 }, done => {
-    Migrate(Object.assign({}, migrationConfig, { op: 'down' }))
-      .then(done)
+  after(done => {
+    knex.migrate.rollback()
+      .then(() => done())
       .catch(done)
   })
+
   it('allows user to authenticate via POST /login', done => {
     let server
 
@@ -112,7 +113,7 @@ describe('Auth', () => {
 
         const admin = {
           username: 'admin',
-          password: 'p4$$w0Rd'
+          password: 'admin'
         }
 
         return server.inject({
