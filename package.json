@@ -4,7 +4,7 @@
   "description": "Hapijs Server boilerplate",
   "main": "lib/index.js",
   "scripts": {
-    "test": "NODE_ENV=test lab -v -c -a code -L",
+    "test": "NODE_ENV=test lab -v -c -l -a code -L",
     "coveralls": "echo repo_token: $COVERALLS_HAPI_POSTGRES_BOILERPLATE > .coveralls.yml",
     "coverage": "NODE_ENV=test npm run coveralls && lab -c -a code -r lcov -o lcov.info && cat ./lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm ./lcov.info .coveralls.yml",
     "start": "nodemon lib/start.js"
