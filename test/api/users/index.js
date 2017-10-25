@@ -174,7 +174,6 @@ describe('User API Tests', () => {
   })
 
   describe('Read User Tests', () => {
-    let server
     let userId
 
     const user = {
@@ -184,6 +183,7 @@ describe('User API Tests', () => {
     }
 
     before(done => {
+      let server
       Server.init(internals.manifest, internals.composeOptions)
         .then(_server => {
           server = _server
@@ -199,44 +199,72 @@ describe('User API Tests', () => {
         })
         .then(res => {
           userId = res.result.message.match(/^Created user with id (.+)$/)[1]
+
+          server.stop(done)
         })
-        .then(done)
+        .catch(err => {
+          server.stop(error => done(error || err))
+        })
+    })
+
+    after(done => {
+      knex('users')
+        .del()
+        .then(() => done())
         .catch(done)
     })
 
-    after(done => server.stop(done))
-
     it('Reads an user', done => {
-      server.inject({
-        url: `/api/users/${userId}`,
-        credentials: {
-          scope: ['user']
-        }
-      })
-      .then(res => {
-        expect(res.statusCode).to.equal(200)
-        const _user = res.result
-        expect(_user.username).to.equal(user.username)
-        expect(_user.scope).to.equal(user.scope)
-        expect(_user.password).to.not.exist()
-        done()
-      })
-      .catch(done)
+      let server
+
+      Server.init(internals.manifest, internals.composeOptions)
+        .then(_server => {
+          server = _server
+
+          return server.inject({
+            url: `/api/users/${userId}`,
+            credentials: {
+              scope: ['user']
+            }
+          })
+        })
+        .then(res => {
+          expect(res.statusCode).to.equal(200)
+          const _user = res.result
+          expect(_user.username).to.equal(user.username)
+          expect(_user.scope).to.equal(user.scope)
+          expect(_user.password).to.not.exist()
+
+          server.stop(done)
+        })
+        .catch(err => {
+          server.stop(error => done(error || err))
+        })
     })
 
     it('Returns 404 if user doesnt exist', done => {
-      server.inject({
-        url: '/api/users/99',
-        credentials: {
-          scope: ['user']
-        }
-      })
-      .then(res => {
-        expect(res.statusCode).to.equal(404)
-        expect(res.result.message).to.equal('User not found')
-        done()
-      })
-      .catch(done)
+      let server
+
+      Server.init(internals.manifest, internals.composeOptions)
+        .then(_server => {
+          server = _server
+
+          return server.inject({
+            url: '/api/users/99',
+            credentials: {
+              scope: ['user']
+            }
+          })
+        })
+        .then(res => {
+          expect(res.statusCode).to.equal(404)
+          expect(res.result.message).to.equal('User not found')
+
+          server.stop(done)
+        })
+        .catch(err => {
+          server.stop(error => done(error || err))
+        })
     })
   })
 
