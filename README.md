@@ -40,9 +40,9 @@ api routes, for both demo purposes and to bootstrap an application easily.
 ## Project Structure
 
 Hapijs Plugins are used to organize and modularize code. General purpose plugins
-go into `lib/` directory. API plugins go into `api/{resource}` directories.
+go into `src/` directory. API plugins go into `api/{resource}` directories.
 
-Plugins are wiredeup using Glue. All plugin loading logic is into `lib/manifest.js`
+Plugins are wiredeup using Glue. All plugin loading logic is into `src/manifest.js`
 file.
 
 For API resources, the directory contains 3 files: `index.js`, `handlers.js` and
@@ -105,7 +105,7 @@ for details on how to create and run migrations.
 
 ## Configuration
 
-All configuration is stored in `lib/config.js`, using
+All configuration is stored in `src/config.js`, using
 [Confidence](https://github.com/hapijs/confidence). Configuration for migrations
 is in `migrations/config.js`.
 

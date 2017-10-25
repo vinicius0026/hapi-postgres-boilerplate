@@ -1,5 +1,5 @@
 'use strict'
 
-const Config = require('./lib/config')
+const Config = require('./src/config')
 
 module.exports = Object.assign({}, Config.get('/db'))

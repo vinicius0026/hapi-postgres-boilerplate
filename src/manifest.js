@@ -12,9 +12,9 @@ module.exports = {
     { plugin: './api/users' },
 
     // Project Plugins
-    { plugin: { register: './lib/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
-    { plugin: './lib/requestLogging' },
-    { plugin: { register: './lib/db', options: Config.get('/db') } },
+    { plugin: { register: './src/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
+    { plugin: './src/requestLogging' },
+    { plugin: { register: './src/db', options: Config.get('/db') } },
 
     // Vendor Plugins
     { plugin: 'hapi-auth-cookie' },

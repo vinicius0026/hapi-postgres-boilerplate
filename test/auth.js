@@ -7,9 +7,9 @@ const Path = require('path')
 const { describe, it, before, after } = exports.lab = Lab.script()
 const { expect } = Code
 
-const Config = require('../lib/config')
+const Config = require('../src/config')
 const dbConfig = require('../knexfile')
-const Server = require('../lib')
+const Server = require('../src')
 
 const knex = require('knex')(dbConfig)
 
@@ -145,10 +145,10 @@ internals.manifest = {
     { port: 0 }
   ],
   registrations: [
-    { plugin: './lib/auth' },
+    { plugin: './src/auth' },
     { plugin: 'hapi-auth-cookie' },
     { plugin: './api/users' },
-    { plugin: { register: './lib/db', options: Config.get('/db') } }
+    { plugin: { register: './src/db', options: Config.get('/db') } }
   ]
 }
 

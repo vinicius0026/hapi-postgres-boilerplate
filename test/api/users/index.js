@@ -9,8 +9,8 @@ const { expect } = Code
 
 const dbConfig = require('../../../knexfile')
 
-const Config = require('../../../lib/config')
-const Server = require('../../../lib')
+const Config = require('../../../src/config')
+const Server = require('../../../src')
 
 const knex = require('knex')(dbConfig)
 const bookshelf = require('bookshelf')(knex)
@@ -66,9 +66,9 @@ describe('User API Tests', () => {
           { port: 0 }
         ],
         registrations: [
-          { plugin: { register: './lib/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
+          { plugin: { register: './src/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
           { plugin: { register: './api/users' } },
-          { plugin: { register: './lib/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } },
+          { plugin: { register: './src/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } },
           { plugin: 'hapi-auth-cookie' }
         ]
       }
@@ -155,10 +155,10 @@ describe('User API Tests', () => {
           { port: 0 }
         ],
         registrations: [
-          { plugin: { register: './lib/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
+          { plugin: { register: './src/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
           { plugin: './api/users' },
           { plugin: 'hapi-auth-cookie' },
-          { plugin: { register: './lib/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } }
+          { plugin: { register: './src/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } }
         ]
       }
 
@@ -275,10 +275,10 @@ describe('User API Tests', () => {
           { port: 0 }
         ],
         registrations: [
-          { plugin: { register: './lib/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
+          { plugin: { register: './src/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
           { plugin: './api/users' },
           { plugin: 'hapi-auth-cookie' },
-          { plugin: { register: './lib/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } }
+          { plugin: { register: './src/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } }
         ]
       }
 
@@ -447,10 +447,10 @@ describe('User API Tests', () => {
           { port: 0 }
         ],
         registrations: [
-          { plugin: { register: './lib/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
+          { plugin: { register: './src/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
           { plugin: './api/users' },
           { plugin: 'hapi-auth-cookie' },
-          { plugin: { register: './lib/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } }
+          { plugin: { register: './src/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } }
         ]
       }
 
@@ -575,10 +575,10 @@ describe('User API Tests', () => {
           { port: 0 }
         ],
         registrations: [
-          { plugin: { register: './lib/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
+          { plugin: { register: './src/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
           { plugin: './api/users' },
           { plugin: 'hapi-auth-cookie' },
-          { plugin: { register: './lib/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } }
+          { plugin: { register: './src/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } }
         ]
       }
 
@@ -610,10 +610,10 @@ internals.manifest = {
     { port: 0 }
   ],
   registrations: [
-    { plugin: { register: './lib/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
+    { plugin: { register: './src/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
     { plugin: './api/users' },
     { plugin: 'hapi-auth-cookie' },
-    { plugin: { register: './lib/db', options: Config.get('/db') } }
+    { plugin: { register: './src/db', options: Config.get('/db') } }
   ]
 }
 
