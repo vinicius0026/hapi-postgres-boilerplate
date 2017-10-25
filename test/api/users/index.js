@@ -31,6 +31,7 @@ describe('User API Tests', () => {
 
   after(done => {
     knex.migrate.rollback()
+      .then(() => knex.destroy())
       .then(() => done())
       .catch(done)
   })
