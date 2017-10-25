@@ -40,7 +40,7 @@ api routes, for both demo purposes and to bootstrap an application easily.
 ## Project Structure
 
 Hapijs Plugins are used to organize and modularize code. General purpose plugins
-go into `src/` directory. API plugins go into `api/{resource}` directories.
+go into `src/` directory. API plugins go into `src/api/{resource}` directories.
 
 Plugins are wiredeup using Glue. All plugin loading logic is into `src/manifest.js`
 file.
@@ -51,11 +51,12 @@ For API resources, the directory contains 3 files: `index.js`, `handlers.js` and
 Example:
 
 ```
- api
- |- users
-    |- index.js
-    |- handlers.js
-    |- model.js
+src
+|- api
+   |- users
+      |- index.js
+      |- handlers.js
+      |- model.js
 ```
 
 `index.js` is basically a router file, were plugin is declared and routes are

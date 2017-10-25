@@ -14,7 +14,7 @@ const knex = require('knex')(dbConfig)
 const bookshelf = require('bookshelf')(knex)
 
 const Config = require('../src/config')
-const UserModel = require('../api/users/model')({ bookshelf })
+const UserModel = require('../src/api/users/model')({ bookshelf })
 const Server = require('../src')
 
 const internals = {}

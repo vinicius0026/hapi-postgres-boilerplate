@@ -147,7 +147,7 @@ internals.manifest = {
   registrations: [
     { plugin: './src/auth' },
     { plugin: 'hapi-auth-cookie' },
-    { plugin: './api/users' },
+    { plugin: './src/api/users' },
     { plugin: { register: './src/db', options: Config.get('/db') } }
   ]
 }

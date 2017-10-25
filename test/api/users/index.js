@@ -14,7 +14,7 @@ const Server = require('../../../src')
 
 const knex = require('knex')(dbConfig)
 const bookshelf = require('bookshelf')(knex)
-const UserModel = require('../../../api/users/model')({ bookshelf })
+const UserModel = require('../../../src/api/users/model')({ bookshelf })
 
 const internals = {}
 
@@ -67,7 +67,7 @@ describe('User API Tests', () => {
         ],
         registrations: [
           { plugin: { register: './src/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
-          { plugin: { register: './api/users' } },
+          { plugin: { register: './src/api/users' } },
           { plugin: { register: './src/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } },
           { plugin: 'hapi-auth-cookie' }
         ]
@@ -156,7 +156,7 @@ describe('User API Tests', () => {
         ],
         registrations: [
           { plugin: { register: './src/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
-          { plugin: './api/users' },
+          { plugin: './src/api/users' },
           { plugin: 'hapi-auth-cookie' },
           { plugin: { register: './src/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } }
         ]
@@ -276,7 +276,7 @@ describe('User API Tests', () => {
         ],
         registrations: [
           { plugin: { register: './src/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
-          { plugin: './api/users' },
+          { plugin: './src/api/users' },
           { plugin: 'hapi-auth-cookie' },
           { plugin: { register: './src/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } }
         ]
@@ -448,7 +448,7 @@ describe('User API Tests', () => {
         ],
         registrations: [
           { plugin: { register: './src/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
-          { plugin: './api/users' },
+          { plugin: './src/api/users' },
           { plugin: 'hapi-auth-cookie' },
           { plugin: { register: './src/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } }
         ]
@@ -576,7 +576,7 @@ describe('User API Tests', () => {
         ],
         registrations: [
           { plugin: { register: './src/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
-          { plugin: './api/users' },
+          { plugin: './src/api/users' },
           { plugin: 'hapi-auth-cookie' },
           { plugin: { register: './src/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } }
         ]
@@ -611,7 +611,7 @@ internals.manifest = {
   ],
   registrations: [
     { plugin: { register: './src/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
-    { plugin: './api/users' },
+    { plugin: './src/api/users' },
     { plugin: 'hapi-auth-cookie' },
     { plugin: { register: './src/db', options: Config.get('/db') } }
   ]

@@ -4,7 +4,7 @@ const Boom = require('boom')
 const Joi = require('joi')
 
 const Config = require('./config')
-const UserModel = require('../api/users/model')
+const UserModel = require('./api/users/model')
 
 const internals = {}
 
