@@ -148,6 +148,45 @@ describe('User API Tests', () => {
           return server.stop()
         })
     })
+
+    it('deals with database errors', () => {
+      const manifest = {
+        connections: [
+          { port: 0 }
+        ],
+        registrations: [
+          { plugin: { register: './lib/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
+          { plugin: './api/users' },
+          { plugin: 'hapi-auth-cookie' },
+          { plugin: { register: './lib/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } }
+        ]
+      }
+
+      let server
+
+      return Server.init(manifest, internals.composeOptions)
+        .then(_server => {
+          server = _server
+
+          return server.inject({
+            method: 'POST',
+            url: '/api/users',
+            payload: {
+              username: 'admin',
+              password: 'some-passsss',
+              scope: ['user']
+            },
+            credentials: {
+              scope: ['admin']
+            }
+          })
+        })
+        .then(res => {
+          expect(res.statusCode).to.equal(500)
+
+          return server.stop()
+        })
+    })
   })
 
   describe('Read User Tests', () => {
@@ -229,6 +268,39 @@ describe('User API Tests', () => {
           return server.stop()
         })
     })
+
+    it('deals with database errors', () => {
+      const manifest = {
+        connections: [
+          { port: 0 }
+        ],
+        registrations: [
+          { plugin: { register: './lib/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
+          { plugin: './api/users' },
+          { plugin: 'hapi-auth-cookie' },
+          { plugin: { register: './lib/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } }
+        ]
+      }
+
+      let server
+
+      return Server.init(manifest, internals.composeOptions)
+        .then(_server => {
+          server = _server
+
+          return server.inject({
+            url: `/api/users/${userId}`,
+            credentials: {
+              scope: ['user']
+            }
+          })
+        })
+        .then(res => {
+          expect(res.statusCode).to.equal(500)
+
+          return server.stop()
+        })
+    })
   })
 
   describe('Update User Tests', () => {
@@ -303,6 +375,46 @@ describe('User API Tests', () => {
         })
     })
 
+    it('Updates user password', () => {
+      let server
+      const newPass = 'newPass'
+
+      return Server.init(internals.manifest, internals.composeOptions)
+        .then(_server => {
+          server = _server
+
+          return server.inject({
+            method: 'PUT',
+            url: `/api/users/${userId}`,
+            credentials: {
+              scope: ['admin']
+            },
+            payload: {
+              password: newPass
+            }
+          })
+        })
+        .then(res => {
+          expect(res.statusCode).to.equal(200)
+          expect(res.result.ok).to.equal(true)
+          expect(res.result.message).to.equal(`Updated user ${userId}`)
+
+          return server.inject({
+            method: 'POST',
+            url: `/login`,
+            payload: {
+              username: user.username,
+              password: newPass
+            }
+          })
+        })
+        .then(res => {
+          expect(res.statusCode).to.equal(200)
+
+          return server.stop()
+        })
+    })
+
     it('returns 404 if user doesnt exist', () => {
       let server
 
@@ -324,6 +436,43 @@ describe('User API Tests', () => {
         .then(res => {
           expect(res.statusCode).to.equal(404)
           expect(res.result.message).to.equal('User not found')
+
+          return server.stop()
+        })
+    })
+
+    it('deals with database errors', () => {
+      const manifest = {
+        connections: [
+          { port: 0 }
+        ],
+        registrations: [
+          { plugin: { register: './lib/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
+          { plugin: './api/users' },
+          { plugin: 'hapi-auth-cookie' },
+          { plugin: { register: './lib/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } }
+        ]
+      }
+
+      let server
+
+      return Server.init(manifest, internals.composeOptions)
+        .then(_server => {
+          server = _server
+
+          return server.inject({
+            method: 'PUT',
+            url: `/api/users/${userId}`,
+            credentials: {
+              scope: ['admin']
+            },
+            payload: {
+              scope: ['user', 'admin']
+            }
+          })
+        })
+        .then(res => {
+          expect(res.statusCode).to.equal(500)
 
           return server.stop()
         })
@@ -415,6 +564,40 @@ describe('User API Tests', () => {
         .then(res => {
           expect(res.statusCode).to.equal(404)
           expect(res.result.message).to.equal('User not found')
+
+          return server.stop()
+        })
+    })
+
+    it('deals with database errors', () => {
+      const manifest = {
+        connections: [
+          { port: 0 }
+        ],
+        registrations: [
+          { plugin: { register: './lib/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
+          { plugin: './api/users' },
+          { plugin: 'hapi-auth-cookie' },
+          { plugin: { register: './lib/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } }
+        ]
+      }
+
+      let server
+
+      return Server.init(manifest, internals.composeOptions)
+        .then(_server => {
+          server = _server
+
+          return server.inject({
+            method: 'DELETE',
+            url: `/api/users/${userId}`,
+            credentials: {
+              scope: ['admin']
+            }
+          })
+        })
+        .then(res => {
+          expect(res.statusCode).to.equal(500)
 
           return server.stop()
         })

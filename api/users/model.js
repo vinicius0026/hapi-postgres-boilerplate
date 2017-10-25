@@ -107,7 +107,7 @@ function remove (id) {
         return Promise.reject(Boom.notFound('User not found'))
       }
 
-      return Boom.wrap(err)
+      throw err
     })
 }
 
