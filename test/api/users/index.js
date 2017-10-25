@@ -23,13 +23,13 @@ const UserModel = require('../../../api/users/model')({ bookshelf })
 const internals = {}
 
 describe('User API Tests', () => {
-  before({ timeout: 10000 }, done => {
+  before(done => {
     knex.migrate.latest()
       .then(() => done())
       .catch(done)
   })
 
-  after({ timeout: 10000 }, done => {
+  after(done => {
     knex.migrate.rollback()
       .then(() => done())
       .catch(done)
