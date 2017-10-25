@@ -115,18 +115,19 @@ describe('Auth', () => {
             password: admin.password
           }
         })
-        .then(res => {
-          const cookie = internals.getCookieFromResponse(res)
+      })
+      .then(res => {
+        const cookie = internals.getCookieFromResponse(res)
 
-          return server.inject({
-            url: '/logout',
-            headers: { cookie }
-          })
+        return server.inject({
+          url: '/logout',
+          headers: { cookie }
         })
-        .then(res => {
-          expect(res.statusCode).to.equal(200)
-          return server.stop()
-        })
+      })
+      .then(res => {
+        expect(res.statusCode).to.equal(200)
+
+        return server.stop()
       })
   })
 })

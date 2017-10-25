@@ -40,22 +40,22 @@ describe('User API Tests', () => {
               scope: ['user']
             }
           })
-          .then(res => {
-            expect(res.statusCode).to.equal(200)
-            const list = res.result.data
-            expect(list).to.be.an.array()
-            list.every(item => {
-              expect(item.username).to.be.a.string()
-              expect(item.scope).to.be.an.array()
-            })
-            const pagination = res.result.pagination
-            expect(pagination).to.equal({
-              totalItems: 1,
-              page: 1,
-              limit: 10
-            })
-            return server.stop()
+        })
+        .then(res => {
+          expect(res.statusCode).to.equal(200)
+          const list = res.result.data
+          expect(list).to.be.an.array()
+          list.every(item => {
+            expect(item.username).to.be.a.string()
+            expect(item.scope).to.be.an.array()
           })
+          const pagination = res.result.pagination
+          expect(pagination).to.equal({
+            totalItems: 1,
+            page: 1,
+            limit: 10
+          })
+          return server.stop()
         })
     })
 
