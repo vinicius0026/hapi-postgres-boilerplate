@@ -4,12 +4,8 @@ const Code = require('code')
 const Lab = require('lab')
 const Path = require('path')
 
-const lab = exports.lab = Lab.script()
-const describe = lab.experiment
-const expect = Code.expect
-const it = lab.test
-const before = lab.before
-const after = lab.after
+const { describe, it, before, after } = exports.lab = Lab.script()
+const { expect } = Code
 
 const Config = require('../lib/config')
 const dbConfig = require('../knexfile')
@@ -26,22 +22,18 @@ describe('Auth', () => {
     scope: ['user', 'admin']
   }
 
-  before(done => {
-    knex.migrate.latest()
-      .then(() => done())
-      .catch(done)
-  })
+  before(() => knex.migrate.latest())
 
-  after(done => {
-    knex.migrate.rollback()
-      .then(() => done())
-      .catch(done)
-  })
+  after(() => knex
+    .migrate
+    .rollback()
+    .then(() => knex.destroy())
+  )
 
-  it('allows user to authenticate via POST /login', done => {
+  it('allows user to authenticate via POST /login', () => {
     let server
 
-    Server.init(internals.manifest, internals.composeOptions)
+    return Server.init(internals.manifest, internals.composeOptions)
       .then(_server => {
         server = _server
 
@@ -56,14 +48,15 @@ describe('Auth', () => {
       })
       .then(res => {
         expect(res.statusCode).to.equal(200)
-        server.stop(done)
+
+        return server.stop()
       })
-      .catch(done)
   })
 
-  it('returns 401 if wrong password is used', done => {
+  it('returns 401 if wrong password is used', () => {
     let server
-    Server.init(internals.manifest, internals.composeOptions)
+
+    return Server.init(internals.manifest, internals.composeOptions)
       .then(_server => {
         server = _server
 
@@ -78,14 +71,13 @@ describe('Auth', () => {
       })
       .then(res => {
         expect(res.statusCode).to.equal(401)
-        server.stop(done)
+        return server.stop()
       })
-      .catch(done)
   })
 
-  it('returns 401 if user doesn exist', done => {
+  it('returns 401 if user doesn exist', () => {
     let server
-    Server.init(internals.manifest, internals.composeOptions)
+    return Server.init(internals.manifest, internals.composeOptions)
       .then(_server => {
         server = _server
 
@@ -100,14 +92,13 @@ describe('Auth', () => {
       })
       .then(res => {
         expect(res.statusCode).to.equal(401)
-        server.stop(done)
+        return server.stop()
       })
-      .catch(done)
   })
 
-  it('logs user out when logged user requests GET /logout', done => {
+  it('logs user out when logged user requests GET /logout', () => {
     let server
-    Server.init(internals.manifest, internals.composeOptions)
+    return Server.init(internals.manifest, internals.composeOptions)
       .then(_server => {
         server = _server
 
@@ -134,9 +125,8 @@ describe('Auth', () => {
         })
         .then(res => {
           expect(res.statusCode).to.equal(200)
-          server.stop(done)
+          return server.stop()
         })
-        .catch(done)
       })
   })
 })

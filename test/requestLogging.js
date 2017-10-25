@@ -20,9 +20,9 @@ const Server = require('../lib')
 const internals = {}
 
 describe('Request Logging', () => {
-  it('emmits request event when a request is sent to server', done => {
+  it('emmits request event when a request is sent to server', () => {
     let server
-    Server.init(internals.manifest, internals.composeOptions)
+    return Server.init(internals.manifest, internals.composeOptions)
       .then(_server => {
         server = _server
 
@@ -40,7 +40,6 @@ describe('Request Logging', () => {
             password: admin.password
           })
           expect(logData.headers).to.be.an.object()
-          done()
         })
 
         return server.inject({
@@ -52,7 +51,6 @@ describe('Request Logging', () => {
           }
         })
       })
-      .catch(done)
   })
 })
 
