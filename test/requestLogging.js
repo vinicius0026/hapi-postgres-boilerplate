@@ -13,9 +13,9 @@ const dbConfig = require('../knexfile')
 const knex = require('knex')(dbConfig)
 const bookshelf = require('bookshelf')(knex)
 
-const Config = require('../lib/config')
-const UserModel = require('../api/users/model')({ bookshelf })
-const Server = require('../lib')
+const Config = require('../src/config')
+const UserModel = require('../src/api/users/model')({ bookshelf })
+const Server = require('../src')
 
 const internals = {}
 
@@ -59,10 +59,10 @@ internals.manifest = {
     { port: 0 }
   ],
   registrations: [
-    { plugin: { register: './lib/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
-    { plugin: './lib/requestLogging' },
+    { plugin: { register: './src/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
+    { plugin: './src/requestLogging' },
     { plugin: 'hapi-auth-cookie' },
-    { plugin: { register: './lib/db', options: Config.get('/db') } }
+    { plugin: { register: './src/db', options: Config.get('/db') } }
   ]
 }
 

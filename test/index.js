@@ -4,7 +4,7 @@ const Code = require('code')
 const Hapi = require('hapi')
 const Lab = require('lab')
 
-const Server = require('../lib')
+const Server = require('../src')
 
 const { describe, it } = exports.lab = Lab.script()
 const { expect } = Code
@@ -45,8 +45,8 @@ describe('Server', () => {
   })
 
   it('works with manifest.js and composeOptions files', () => {
-    const manifest = require('../lib/manifest')
-    const options = require('../lib/composeOptions')
+    const manifest = require('../src/manifest')
+    const options = require('../src/composeOptions')
 
     return Server.init(manifest, options)
       .then(server => {

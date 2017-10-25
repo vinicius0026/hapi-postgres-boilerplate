@@ -1,7 +1,7 @@
 'use strict'
 
 const Config = require('./config')
-const UserModel = require('../api/users/model')
+const UserModel = require('./api/users/model')
 
 module.exports = {
   connections: [
@@ -9,12 +9,12 @@ module.exports = {
   ],
   registrations: [
     // API Routes Plugins
-    { plugin: './api/users' },
+    { plugin: './src/api/users' },
 
     // Project Plugins
-    { plugin: { register: './lib/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
-    { plugin: './lib/requestLogging' },
-    { plugin: { register: './lib/db', options: Config.get('/db') } },
+    { plugin: { register: './src/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
+    { plugin: './src/requestLogging' },
+    { plugin: { register: './src/db', options: Config.get('/db') } },
 
     // Vendor Plugins
     { plugin: 'hapi-auth-cookie' },
