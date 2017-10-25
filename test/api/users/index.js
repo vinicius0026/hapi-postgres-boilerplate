@@ -67,7 +67,9 @@ describe('User API Tests', () => {
             })
             server.stop(done)
           })
-          .catch(done)
+          .catch(err => {
+            server.stop(error => done(error || err))
+          })
         })
     })
 
@@ -134,7 +136,9 @@ describe('User API Tests', () => {
 
           server.stop(done)
         })
-        .catch(done)
+        .catch(err => {
+          server.stop(error => done(error || err))
+        })
     })
 
     it('doesnt create user if username is already taken', done => {
@@ -160,9 +164,12 @@ describe('User API Tests', () => {
         .then(res => {
           expect(res.statusCode).to.equal(400)
           expect(res.result.message).to.equal('Username already taken')
+
           server.stop(done)
         })
-        .catch(done)
+        .catch(err => {
+          server.stop(error => done(error || err))
+        })
     })
   })
 
