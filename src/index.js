@@ -4,31 +4,25 @@ const Glue = require('glue')
 
 const internals = {}
 
-internals.init = function (manifest, options) {
-  let server
+internals.init = async function (manifest, options) {
+  const server = await Glue.compose(manifest, options)
 
-  return Glue.compose(manifest, options)
-    .then(_server => {
-      server = _server
+  server.ext({
+    type: 'onPreStop',
+    method: (server, next) => {
+      const { bookshelf } = server.app
 
-      server.ext({
-        type: 'onPreStop',
-        method: (server, next) => {
-          const { bookshelf } = server.app
+      if (!bookshelf) {
+        return next()
+      }
 
-          if (!bookshelf) {
-            return next()
-          }
+      bookshelf.knex.destroy(next)
+    }
+  })
 
-          bookshelf.knex.destroy(next)
-        }
-      })
-    })
-    .then(() => server.start())
-    .then(() => server)
-    .catch(err => {
-      throw err
-    })
+  await server.start()
+
+  return server
 }
 
 exports.init = internals.init
