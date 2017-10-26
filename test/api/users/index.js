@@ -56,19 +56,7 @@ describe('User API Tests', () => {
     })
 
     it('handles errors in db', async () => {
-      const manifest = {
-        connections: [
-          { port: 0 }
-        ],
-        registrations: [
-          { plugin: { register: './src/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
-          { plugin: { register: './src/api/users' } },
-          { plugin: { register: './src/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } },
-          { plugin: 'hapi-auth-cookie' }
-        ]
-      }
-
-      const server = await Server.init(manifest, internals.composeOptions)
+      const server = await Server.init(internals.brokenManifest, internals.composeOptions)
       const res = await server.inject({
         url: '/api/users',
         credentials: {
@@ -126,19 +114,7 @@ describe('User API Tests', () => {
     })
 
     it('deals with database errors', async () => {
-      const manifest = {
-        connections: [
-          { port: 0 }
-        ],
-        registrations: [
-          { plugin: { register: './src/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
-          { plugin: './src/api/users' },
-          { plugin: 'hapi-auth-cookie' },
-          { plugin: { register: './src/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } }
-        ]
-      }
-
-      const server = await Server.init(manifest, internals.composeOptions)
+      const server = await Server.init(internals.brokenManifest, internals.composeOptions)
       const res = await server.inject({
         method: 'POST',
         url: '/api/users',
@@ -219,19 +195,7 @@ describe('User API Tests', () => {
     })
 
     it('deals with database errors', async () => {
-      const manifest = {
-        connections: [
-          { port: 0 }
-        ],
-        registrations: [
-          { plugin: { register: './src/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
-          { plugin: './src/api/users' },
-          { plugin: 'hapi-auth-cookie' },
-          { plugin: { register: './src/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } }
-        ]
-      }
-
-      const server = await Server.init(manifest, internals.composeOptions)
+      const server = await Server.init(internals.brokenManifest, internals.composeOptions)
       const res = await server.inject({
         url: `/api/users/${userId}`,
         credentials: {
@@ -353,19 +317,7 @@ describe('User API Tests', () => {
     })
 
     it('deals with database errors', async () => {
-      const manifest = {
-        connections: [
-          { port: 0 }
-        ],
-        registrations: [
-          { plugin: { register: './src/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
-          { plugin: './src/api/users' },
-          { plugin: 'hapi-auth-cookie' },
-          { plugin: { register: './src/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } }
-        ]
-      }
-
-      const server = await Server.init(manifest, internals.composeOptions)
+      const server = await Server.init(internals.brokenManifest, internals.composeOptions)
       const res = await server.inject({
         method: 'PUT',
         url: `/api/users/${userId}`,
@@ -453,19 +405,7 @@ describe('User API Tests', () => {
     })
 
     it('deals with database errors', async () => {
-      const manifest = {
-        connections: [
-          { port: 0 }
-        ],
-        registrations: [
-          { plugin: { register: './src/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
-          { plugin: './src/api/users' },
-          { plugin: 'hapi-auth-cookie' },
-          { plugin: { register: './src/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } }
-        ]
-      }
-
-      const server = await Server.init(manifest, internals.composeOptions)
+      const server = await Server.init(internals.brokenManifest, internals.composeOptions)
       const res = await server.inject({
         method: 'DELETE',
         url: `/api/users/${userId}`,
@@ -489,6 +429,18 @@ internals.manifest = {
     { plugin: './src/api/users' },
     { plugin: 'hapi-auth-cookie' },
     { plugin: { register: './src/db', options: Config.get('/db') } }
+  ]
+}
+
+internals.brokenManifest = {
+  connections: [
+    { port: 0 }
+  ],
+  registrations: [
+    { plugin: { register: './src/auth', options: { getValidatedUser: UserModel.getValidatedUser } } },
+    { plugin: { register: './src/api/users' } },
+    { plugin: { register: './src/db', options: { client: 'pg', connection: { database: 'inexistent-db' } } } },
+    { plugin: 'hapi-auth-cookie' }
   ]
 }
 
