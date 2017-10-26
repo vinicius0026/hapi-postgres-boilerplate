@@ -45,17 +45,19 @@ internals.setupAuth = function (server, next) {
             password: Joi.string().min(2).max(50).required()
           }
         },
-        handler: (request, reply) => {
-          internals.getValidatedUser(request.payload.username, request.payload.password)
-            .then(user => {
-              if (!user) {
-                return reply(Boom.unauthorized('Bad email or password'))
-              }
+        handler: async (request, reply) => {
+          try {
+            const user = await internals.getValidatedUser(request.payload.username, request.payload.password)
 
-              request.cookieAuth.set(user)
-              reply({ ok: true, message: 'login successful', data: user })
-            })
-            .catch(() => reply(Boom.unauthorized('Bad email or password')))
+            if (!user) {
+              return reply(Boom.unauthorized('Bad email or password'))
+            }
+
+            request.cookieAuth.set(user)
+            return reply({ ok: true, message: 'login successful', data: user })
+          } catch (err) {
+            return reply(Boom.unauthorized('Bad email or password'))
+          }
         }
       }
     },

@@ -1,7 +1,5 @@
 'use strict'
 
-const Boom = require('boom')
-
 const Model = require('./model')
 
 const internals = {}
@@ -18,36 +16,51 @@ module.exports = function (options) {
   }
 }
 
-function create (request, reply) {
-  return internals.model.create(request.payload)
-    .then(id => reply({ ok: true, message: `Created user with id ${id}` }).code(201))
-    .catch(err => reply(Boom.wrap(err)))
+async function create (request, reply) {
+  try {
+    const id = await internals.model.create(request.payload)
+    return reply({ ok: true, message: `Created user with id ${id}` }).code(201)
+  } catch (err) {
+    return reply(err)
+  }
 }
 
-function read (request, reply) {
-  const id = request.params.id
-  return internals.model.read(id)
-    .then(reply)
-    .catch(err => reply(Boom.wrap(err)))
+async function read (request, reply) {
+  const { id } = request.params
+  try {
+    const user = await internals.model.read(id)
+    return reply(user)
+  } catch (err) {
+    return reply(err)
+  }
 }
 
-function update (request, reply) {
-  const id = request.params.id
-  const payload = request.payload
-  return internals.model.update(id, payload)
-    .then(user => reply({ ok: true, message: `Updated user ${user.id}` }))
-    .catch(err => reply(Boom.wrap(err)))
+async function update (request, reply) {
+  const { id } = request.params
+  const { payload } = request
+  try {
+    const user = await internals.model.update(id, payload)
+    return reply({ ok: true, message: `Updated user ${user.id}` })
+  } catch (err) {
+    return reply(err)
+  }
 }
 
-function remove (request, reply) {
-  const id = request.params.id
-  return internals.model.remove(id)
-    .then(() => reply().code(204))
-    .catch(err => reply(Boom.wrap(err)))
+async function remove (request, reply) {
+  const { id } = request.params
+  try {
+    await internals.model.remove(id)
+    return reply().code(204)
+  } catch (err) {
+    return reply(err)
+  }
 }
 
-function list (request, reply) {
-  return internals.model.list(request.query)
-    .then(reply)
-    .catch(err => reply(Boom.wrap(err)))
+async function list (request, reply) {
+  try {
+    const results = await internals.model.list(request.query)
+    return reply(results)
+  } catch (err) {
+    return reply(err)
+  }
 }
