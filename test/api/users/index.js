@@ -26,41 +26,36 @@ describe('User API Tests', () => {
   )
 
   describe('List Users Tests', () => {
-    it('Lists users if logged as user', () => {
-      let server
+    it('Lists users if logged as user', async () => {
+      const server = await Server.init(internals.manifest, internals.composeOptions)
+      const res = await server.inject({
+        method: 'GET',
+        url: '/api/users',
+        credentials: {
+          scope: ['user']
+        }
+      })
 
-      return Server.init(internals.manifest, internals.composeOptions)
-        .then(_server => {
-          server = _server
+      expect(res.statusCode).to.equal(200)
 
-          return server.inject({
-            method: 'GET',
-            url: '/api/users',
-            credentials: {
-              scope: ['user']
-            }
-          })
-        })
-        .then(res => {
-          expect(res.statusCode).to.equal(200)
-          const list = res.result.data
-          expect(list).to.be.an.array()
-          list.every(item => {
-            expect(item.username).to.be.a.string()
-            expect(item.scope).to.be.an.array()
-          })
-          const pagination = res.result.pagination
-          expect(pagination).to.equal({
-            totalItems: 1,
-            page: 1,
-            limit: 10
-          })
-          return server.stop()
-        })
+      const list = res.result.data
+      expect(list).to.be.an.array()
+      list.every(item => {
+        expect(item.username).to.be.a.string()
+        expect(item.scope).to.be.an.array()
+      })
+
+      const pagination = res.result.pagination
+      expect(pagination).to.equal({
+        totalItems: 1,
+        page: 1,
+        limit: 10
+      })
+
+      await server.stop()
     })
 
-    it('handles errors in db', () => {
-      let server
+    it('handles errors in db', async () => {
       const manifest = {
         connections: [
           { port: 0 }
@@ -73,83 +68,64 @@ describe('User API Tests', () => {
         ]
       }
 
-      return Server.init(manifest, internals.composeOptions)
-        .then(_server => {
-          server = _server
+      const server = await Server.init(manifest, internals.composeOptions)
+      const res = await server.inject({
+        url: '/api/users',
+        credentials: {
+          scope: ['user']
+        }
+      })
 
-          return server.inject({
-            url: '/api/users',
-            credentials: {
-              scope: ['user']
-            }
-          })
-        })
-        .then(res => {
-          expect(res.statusCode).to.equal(500)
-          return server.stop()
-        })
+      expect(res.statusCode).to.equal(500)
+      await server.stop()
     })
   })
 
   describe('Create User Tests', () => {
-    it('creates user if authenticated as admin', () => {
-      let server
+    it('creates user if authenticated as admin', async () => {
+      const server = await Server.init(internals.manifest, internals.composeOptions)
+      const res = await server.inject({
+        method: 'POST',
+        url: '/api/users',
+        payload: {
+          username: 'new-user',
+          password: 'some-passsss',
+          scope: ['user']
+        },
+        credentials: {
+          scope: ['admin']
+        }
+      })
 
-      return Server.init(internals.manifest, internals.composeOptions)
-        .then(_server => {
-          server = _server
+      expect(res.statusCode).to.equal(201)
+      expect(res.result.ok).to.equal(true)
+      expect(res.result.message).to.match(/^Created user with id .+$/)
 
-          return server.inject({
-            method: 'POST',
-            url: '/api/users',
-            payload: {
-              username: 'new-user',
-              password: 'some-passsss',
-              scope: ['user']
-            },
-            credentials: {
-              scope: ['admin']
-            }
-          })
-        })
-        .then(res => {
-          expect(res.statusCode).to.equal(201)
-          expect(res.result.ok).to.equal(true)
-          expect(res.result.message).to.match(/^Created user with id .+$/)
-
-          return server.stop()
-        })
+      await server.stop()
     })
 
-    it('doesnt create user if username is already taken', () => {
-      let server
+    it('doesnt create user if username is already taken', async () => {
+      const server = await Server.init(internals.manifest, internals.composeOptions)
+      const res = await server.inject({
+        method: 'POST',
+        url: '/api/users',
+        payload: {
+          username: 'admin',
+          password: 'some-passsss',
+          scope: ['user']
+        },
+        credentials: {
+          scope: ['admin']
+        }
+      })
 
-      return Server.init(internals.manifest, internals.composeOptions)
-        .then(_server => {
-          server = _server
+      expect(res.statusCode).to.equal(400)
+      expect(res.result.message).to.equal('Username already taken')
 
-          return server.inject({
-            method: 'POST',
-            url: '/api/users',
-            payload: {
-              username: 'admin',
-              password: 'some-passsss',
-              scope: ['user']
-            },
-            credentials: {
-              scope: ['admin']
-            }
-          })
-        })
-        .then(res => {
-          expect(res.statusCode).to.equal(400)
-          expect(res.result.message).to.equal('Username already taken')
-
-          return server.stop()
-        })
+      await server.stop()
     })
 
-    it('deals with database errors', () => {
+    it('deals with database errors', async () => {
       const manifest = {
         connections: [
           { port: 0 }
@@ -162,30 +138,23 @@ describe('User API Tests', () => {
         ]
       }
 
-      let server
+      const server = await Server.init(manifest, internals.composeOptions)
+      const res = await server.inject({
+        method: 'POST',
+        url: '/api/users',
+        payload: {
+          username: 'admin',
+          password: 'some-passsss',
+          scope: ['user']
+        },
+        credentials: {
+          scope: ['admin']
+        }
+      })
 
-      return Server.init(manifest, internals.composeOptions)
-        .then(_server => {
-          server = _server
+      expect(res.statusCode).to.equal(500)
 
-          return server.inject({
-            method: 'POST',
-            url: '/api/users',
-            payload: {
-              username: 'admin',
-              password: 'some-passsss',
-              scope: ['user']
-            },
-            credentials: {
-              scope: ['admin']
-            }
-          })
-        })
-        .then(res => {
-          expect(res.statusCode).to.equal(500)
-
-          return server.stop()
-        })
+      await server.stop()
     })
   })
 
@@ -198,78 +167,58 @@ describe('User API Tests', () => {
       scope: ['user']
     }
 
-    before(() => {
-      let server
-      return Server.init(internals.manifest, internals.composeOptions)
-        .then(_server => {
-          server = _server
+    before(async () => {
+      const server = await Server.init(internals.manifest, internals.composeOptions)
+      const res = await server.inject({
+        method: 'POST',
+        url: '/api/users',
+        payload: user,
+        credentials: {
+          scope: ['admin']
+        }
+      })
 
-          return server.inject({
-            method: 'POST',
-            url: '/api/users',
-            payload: user,
-            credentials: {
-              scope: ['admin']
-            }
-          })
-        })
-        .then(res => {
-          userId = res.result.message.match(/^Created user with id (.+)$/)[1]
+      userId = res.result.message.match(/^Created user with id (.+)$/)[1]
 
-          return server.stop()
-        })
+      await server.stop()
     })
 
     after(() => knex('users').del())
 
-    it('Reads an user', () => {
-      let server
+    it('Reads an user', async () => {
+      const server = await Server.init(internals.manifest, internals.composeOptions)
+      const res = await server.inject({
+        url: `/api/users/${userId}`,
+        credentials: {
+          scope: ['user']
+        }
+      })
 
-      return Server.init(internals.manifest, internals.composeOptions)
-        .then(_server => {
-          server = _server
+      expect(res.statusCode).to.equal(200)
+      const _user = res.result
+      expect(_user.username).to.equal(user.username)
+      expect(_user.scope).to.equal(user.scope)
+      expect(_user.password).to.not.exist()
 
-          return server.inject({
-            url: `/api/users/${userId}`,
-            credentials: {
-              scope: ['user']
-            }
-          })
-        })
-        .then(res => {
-          expect(res.statusCode).to.equal(200)
-          const _user = res.result
-          expect(_user.username).to.equal(user.username)
-          expect(_user.scope).to.equal(user.scope)
-          expect(_user.password).to.not.exist()
-
-          return server.stop()
-        })
+      await server.stop()
     })
 
-    it('Returns 404 if user doesnt exist', () => {
-      let server
+    it('Returns 404 if user doesnt exist', async () => {
+      const server = await Server.init(internals.manifest, internals.composeOptions)
+      const res = await server.inject({
+        url: '/api/users/99',
+        credentials: {
+          scope: ['user']
+        }
+      })
 
-      return Server.init(internals.manifest, internals.composeOptions)
-        .then(_server => {
-          server = _server
+      expect(res.statusCode).to.equal(404)
+      expect(res.result.message).to.equal('User not found')
 
-          return server.inject({
-            url: '/api/users/99',
-            credentials: {
-              scope: ['user']
-            }
-          })
-        })
-        .then(res => {
-          expect(res.statusCode).to.equal(404)
-          expect(res.result.message).to.equal('User not found')
-
-          return server.stop()
-        })
+      await server.stop()
     })
 
-    it('deals with database errors', () => {
+    it('deals with database errors', async () => {
       const manifest = {
         connections: [
           { port: 0 }
@@ -282,24 +231,17 @@ describe('User API Tests', () => {
         ]
       }
 
-      let server
+      const server = await Server.init(manifest, internals.composeOptions)
+      const res = await server.inject({
+        url: `/api/users/${userId}`,
+        credentials: {
+          scope: ['user']
+        }
+      })
 
-      return Server.init(manifest, internals.composeOptions)
-        .then(_server => {
-          server = _server
+      expect(res.statusCode).to.equal(500)
 
-          return server.inject({
-            url: `/api/users/${userId}`,
-            credentials: {
-              scope: ['user']
-            }
-          })
-        })
-        .then(res => {
-          expect(res.statusCode).to.equal(500)
-
-          return server.stop()
-        })
+      await server.stop()
     })
   })
 
@@ -312,136 +254,105 @@ describe('User API Tests', () => {
       scope: ['user']
     }
 
-    before(() => {
-      let server
-      return Server.init(internals.manifest, internals.composeOptions)
-        .then(_server => {
-          server = _server
+    before(async () => {
+      const server = await Server.init(internals.manifest, internals.composeOptions)
+      const res = await server.inject({
+        method: 'POST',
+        url: '/api/users',
+        payload: user,
+        credentials: {
+          scope: ['admin']
+        }
+      })
+      userId = res.result.message.match(/^Created user with id (.+)$/)[1]
 
-          return server.inject({
-            method: 'POST',
-            url: '/api/users',
-            payload: user,
-            credentials: {
-              scope: ['admin']
-            }
-          })
-        })
-        .then(res => {
-          userId = res.result.message.match(/^Created user with id (.+)$/)[1]
-
-          return server.stop()
-        })
+      await server.stop()
     })
 
     after(() => knex('users').del())
 
-    it('Updates an user', () => {
-      let server
+    it('Updates an user', async () => {
+      const server = await Server.init(internals.manifest, internals.composeOptions)
+      const res = await server.inject({
+        method: 'PUT',
+        url: `/api/users/${userId}`,
+        credentials: {
+          scope: ['admin']
+        },
+        payload: {
+          scope: ['user', 'admin']
+        }
+      })
 
-      return Server.init(internals.manifest, internals.composeOptions)
-        .then(_server => {
-          server = _server
+      expect(res.statusCode).to.equal(200)
+      expect(res.result.ok).to.equal(true)
+      expect(res.result.message).to.equal(`Updated user ${userId}`)
 
-          return server.inject({
-            method: 'PUT',
-            url: `/api/users/${userId}`,
-            credentials: {
-              scope: ['admin']
-            },
-            payload: {
-              scope: ['user', 'admin']
-            }
-          })
-        })
-        .then(res => {
-          expect(res.statusCode).to.equal(200)
-          expect(res.result.ok).to.equal(true)
-          expect(res.result.message).to.equal(`Updated user ${userId}`)
+      const res2 = await server.inject({
+        method: 'GET',
+        url: `/api/users/${userId}`,
+        credentials: {
+          scope: ['user']
+        }
+      })
+      const user = res2.result
+      expect(user.scope).to.equal(['user', 'admin'])
 
-          return server.inject({
-            method: 'GET',
-            url: `/api/users/${userId}`,
-            credentials: {
-              scope: ['user']
-            }
-          })
-        })
-        .then(res => {
-          const user = res.result
-          expect(user.scope).to.equal(['user', 'admin'])
-
-          return server.stop()
-        })
+      await server.stop()
     })
 
-    it('Updates user password', () => {
-      let server
+    it('Updates user password', async () => {
       const newPass = 'newPass'
+      const server = await Server.init(internals.manifest, internals.composeOptions)
+      const res = await server.inject({
+        method: 'PUT',
+        url: `/api/users/${userId}`,
+        credentials: {
+          scope: ['admin']
+        },
+        payload: {
+          password: newPass
+        }
+      })
 
-      return Server.init(internals.manifest, internals.composeOptions)
-        .then(_server => {
-          server = _server
+      expect(res.statusCode).to.equal(200)
+      expect(res.result.ok).to.equal(true)
+      expect(res.result.message).to.equal(`Updated user ${userId}`)
 
-          return server.inject({
-            method: 'PUT',
-            url: `/api/users/${userId}`,
-            credentials: {
-              scope: ['admin']
-            },
-            payload: {
-              password: newPass
-            }
-          })
-        })
-        .then(res => {
-          expect(res.statusCode).to.equal(200)
-          expect(res.result.ok).to.equal(true)
-          expect(res.result.message).to.equal(`Updated user ${userId}`)
+      const res2 = await server.inject({
+        method: 'POST',
+        url: `/login`,
+        payload: {
+          username: user.username,
+          password: newPass
+        }
+      })
 
-          return server.inject({
-            method: 'POST',
-            url: `/login`,
-            payload: {
-              username: user.username,
-              password: newPass
-            }
-          })
-        })
-        .then(res => {
-          expect(res.statusCode).to.equal(200)
+      expect(res2.statusCode).to.equal(200)
 
-          return server.stop()
-        })
+      await server.stop()
     })
 
-    it('returns 404 if user doesnt exist', () => {
-      let server
+    it('returns 404 if user doesnt exist', async () => {
+      const server = await Server.init(internals.manifest, internals.composeOptions)
+      const res = await server.inject({
+        method: 'PUT',
+        url: `/api/users/99`,
+        credentials: {
+          scope: ['admin']
+        },
+        payload: {
+          scope: ['user', 'admin']
+        }
+      })
 
-      return Server.init(internals.manifest, internals.composeOptions)
-        .then(_server => {
-          server = _server
+      expect(res.statusCode).to.equal(404)
+      expect(res.result.message).to.equal('User not found')
 
-          return server.inject({
-            method: 'PUT',
-            url: `/api/users/99`,
-            credentials: {
-              scope: ['admin']
-            },
-            payload: {
-              scope: ['user', 'admin']
-            }
-          })
-        })
-        .then(res => {
-          expect(res.statusCode).to.equal(404)
-          expect(res.result.message).to.equal('User not found')
-
-          return server.stop()
-        })
+      await server.stop()
     })
 
-    it('deals with database errors', () => {
+    it('deals with database errors', async () => {
       const manifest = {
         connections: [
           { port: 0 }
@@ -454,28 +365,21 @@ describe('User API Tests', () => {
         ]
       }
 
-      let server
+      const server = await Server.init(manifest, internals.composeOptions)
+      const res = await server.inject({
+        method: 'PUT',
+        url: `/api/users/${userId}`,
+        credentials: {
+          scope: ['admin']
+        },
+        payload: {
+          scope: ['user', 'admin']
+        }
+      })
 
-      return Server.init(manifest, internals.composeOptions)
-        .then(_server => {
-          server = _server
+      expect(res.statusCode).to.equal(500)
 
-          return server.inject({
-            method: 'PUT',
-            url: `/api/users/${userId}`,
-            credentials: {
-              scope: ['admin']
-            },
-            payload: {
-              scope: ['user', 'admin']
-            }
-          })
-        })
-        .then(res => {
-          expect(res.statusCode).to.equal(500)
-
-          return server.stop()
-        })
+      await server.stop()
     })
   })
 
@@ -488,88 +392,67 @@ describe('User API Tests', () => {
       scope: ['user']
     }
 
-    before(() => {
-      let server
-      return Server.init(internals.manifest, internals.composeOptions)
-        .then(_server => {
-          server = _server
+    before(async () => {
+      const server = await Server.init(internals.manifest, internals.composeOptions)
+      const res = await server.inject({
+        method: 'POST',
+        url: '/api/users',
+        payload: user,
+        credentials: {
+          scope: ['admin']
+        }
+      })
 
-          return server.inject({
-            method: 'POST',
-            url: '/api/users',
-            payload: user,
-            credentials: {
-              scope: ['admin']
-            }
-          })
-        })
-        .then(res => {
-          userId = res.result.message.match(/^Created user with id (.+)$/)[1]
+      userId = res.result.message.match(/^Created user with id (.+)$/)[1]
 
-          return server.stop()
-        })
+      await server.stop()
     })
 
     after(() => knex('users').del())
 
-    it('Removes an user', () => {
-      let server
+    it('Removes an user', async () => {
+      const server = await Server.init(internals.manifest, internals.composeOptions)
+      const res = await server.inject({
+        method: 'DELETE',
+        url: `/api/users/${userId}`,
+        credentials: {
+          scope: ['admin']
+        }
+      })
 
-      return Server.init(internals.manifest, internals.composeOptions)
-        .then(_server => {
-          server = _server
+      expect(res.statusCode).to.equal(204)
 
-          return server.inject({
-            method: 'DELETE',
-            url: `/api/users/${userId}`,
-            credentials: {
-              scope: ['admin']
-            }
-          })
-        })
-        .then(res => {
-          expect(res.statusCode).to.equal(204)
+      const res2 = await server.inject({
+        method: 'GET',
+        url: `/api/users/${userId}`,
+        credentials: {
+          scope: ['user']
+        }
+      })
 
-          return server.inject({
-            method: 'GET',
-            url: `/api/users/${userId}`,
-            credentials: {
-              scope: ['user']
-            }
-          })
-        })
-        .then(res => {
-          expect(res.statusCode).to.equal(404)
-          expect(res.result.message).to.equal('User not found')
+      expect(res2.statusCode).to.equal(404)
+      expect(res2.result.message).to.equal('User not found')
 
-          return server.stop()
-        })
+      await server.stop()
     })
 
-    it('returns 404 if user doesnt exist', () => {
-      let server
+    it('returns 404 if user doesnt exist', async () => {
+      const server = await Server.init(internals.manifest, internals.composeOptions)
+      const res = await server.inject({
+        method: 'DELETE',
+        url: `/api/users/99`,
+        credentials: {
+          scope: ['admin']
+        }
+      })
 
-      return Server.init(internals.manifest, internals.composeOptions)
-        .then(_server => {
-          server = _server
+      expect(res.statusCode).to.equal(404)
+      expect(res.result.message).to.equal('User not found')
 
-          return server.inject({
-            method: 'DELETE',
-            url: `/api/users/99`,
-            credentials: {
-              scope: ['admin']
-            }
-          })
-        })
-        .then(res => {
-          expect(res.statusCode).to.equal(404)
-          expect(res.result.message).to.equal('User not found')
-
-          return server.stop()
-        })
+      await server.stop()
     })
 
-    it('deals with database errors', () => {
+    it('deals with database errors', async () => {
       const manifest = {
         connections: [
           { port: 0 }
@@ -582,25 +465,17 @@ describe('User API Tests', () => {
         ]
       }
 
-      let server
+      const server = await Server.init(manifest, internals.composeOptions)
+      const res = await server.inject({
+        method: 'DELETE',
+        url: `/api/users/${userId}`,
+        credentials: {
+          scope: ['admin']
+        }
+      })
+      expect(res.statusCode).to.equal(500)
 
-      return Server.init(manifest, internals.composeOptions)
-        .then(_server => {
-          server = _server
-
-          return server.inject({
-            method: 'DELETE',
-            url: `/api/users/${userId}`,
-            credentials: {
-              scope: ['admin']
-            }
-          })
-        })
-        .then(res => {
-          expect(res.statusCode).to.equal(500)
-
-          return server.stop()
-        })
+      await server.stop()
     })
   })
 })

@@ -20,37 +20,33 @@ const Server = require('../src')
 const internals = {}
 
 describe('Request Logging', () => {
-  it('emmits request event when a request is sent to server', () => {
-    let server
-    return Server.init(internals.manifest, internals.composeOptions)
-      .then(_server => {
-        server = _server
+  it('emmits request event when a request is sent to server', async () => {
+    const server = await Server.init(internals.manifest, internals.composeOptions)
 
-        const admin = {
-          username: 'admin',
-          password: 'p4$$w0Rd'
-        }
+    const admin = {
+      username: 'admin',
+      password: 'p4$$w0Rd'
+    }
 
-        server.on('request', (request, event, tags) => {
-          const logData = event.data
+    server.on('request', (request, event, tags) => {
+      const logData = event.data
 
-          expect(logData.path).to.equal('/login')
-          expect(logData.payload).to.equal({
-            username: admin.username,
-            password: admin.password
-          })
-          expect(logData.headers).to.be.an.object()
-        })
-
-        return server.inject({
-          method: 'POST',
-          url: '/login',
-          payload: {
-            username: admin.username,
-            password: admin.password
-          }
-        })
+      expect(logData.path).to.equal('/login')
+      expect(logData.payload).to.equal({
+        username: admin.username,
+        password: admin.password
       })
+      expect(logData.headers).to.be.an.object()
+    })
+
+    await server.inject({
+      method: 'POST',
+      url: '/login',
+      payload: {
+        username: admin.username,
+        password: admin.password
+      }
+    })
   })
 })
 

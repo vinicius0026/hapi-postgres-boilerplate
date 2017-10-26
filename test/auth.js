@@ -30,105 +30,77 @@ describe('Auth', () => {
     .then(() => knex.destroy())
   )
 
-  it('allows user to authenticate via POST /login', () => {
-    let server
+  it('allows user to authenticate via POST /login', async () => {
+    const server = await Server.init(internals.manifest, internals.composeOptions)
+    const res = await server.inject({
+      method: 'POST',
+      url: '/login',
+      payload: {
+        username: admin.username,
+        password: admin.password
+      }
+    })
 
-    return Server.init(internals.manifest, internals.composeOptions)
-      .then(_server => {
-        server = _server
+    expect(res.statusCode).to.equal(200)
 
-        return server.inject({
-          method: 'POST',
-          url: '/login',
-          payload: {
-            username: admin.username,
-            password: admin.password
-          }
-        })
-      })
-      .then(res => {
-        expect(res.statusCode).to.equal(200)
-
-        return server.stop()
-      })
+    await server.stop()
   })
 
-  it('returns 401 if wrong password is used', () => {
-    let server
-
-    return Server.init(internals.manifest, internals.composeOptions)
-      .then(_server => {
-        server = _server
-
-        return server.inject({
-          method: 'POST',
-          url: '/login',
-          payload: {
-            username: 'admin',
-            password: 'wrong-pass'
-          }
-        })
-      })
-      .then(res => {
-        expect(res.statusCode).to.equal(401)
-        return server.stop()
-      })
+  it('returns 401 if wrong password is used', async () => {
+    const server = await Server.init(internals.manifest, internals.composeOptions)
+    const res = await server.inject({
+      method: 'POST',
+      url: '/login',
+      payload: {
+        username: 'admin',
+        password: 'wrong-pass'
+      }
+    })
+    expect(res.statusCode).to.equal(401)
+    await server.stop()
   })
 
-  it('returns 401 if user doesn exist', () => {
-    let server
-    return Server.init(internals.manifest, internals.composeOptions)
-      .then(_server => {
-        server = _server
-
-        return server.inject({
-          method: 'POST',
-          url: '/login',
-          payload: {
-            username: 'non-user',
-            password: 'doent matter'
-          }
-        })
-      })
-      .then(res => {
-        expect(res.statusCode).to.equal(401)
-        return server.stop()
-      })
+  it('returns 401 if user doesn exist', async () => {
+    const server = await Server.init(internals.manifest, internals.composeOptions)
+    const res = await server.inject({
+      method: 'POST',
+      url: '/login',
+      payload: {
+        username: 'non-user',
+        password: 'doent matter'
+      }
+    })
+    expect(res.statusCode).to.equal(401)
+    await server.stop()
   })
 
-  it('logs user out when logged user requests GET /logout', () => {
-    let server
-    return Server.init(internals.manifest, internals.composeOptions)
-      .then(_server => {
-        server = _server
+  it('logs user out when logged user requests GET /logout', async () => {
+    const server = await Server.init(internals.manifest, internals.composeOptions)
 
-        const admin = {
-          username: 'admin',
-          password: 'admin'
-        }
+    const admin = {
+      username: 'admin',
+      password: 'admin'
+    }
 
-        return server.inject({
-          method: 'POST',
-          url: '/login',
-          payload: {
-            username: admin.username,
-            password: admin.password
-          }
-        })
-      })
-      .then(res => {
-        const cookie = internals.getCookieFromResponse(res)
+    const res = await server.inject({
+      method: 'POST',
+      url: '/login',
+      payload: {
+        username: admin.username,
+        password: admin.password
+      }
+    })
 
-        return server.inject({
-          url: '/logout',
-          headers: { cookie }
-        })
-      })
-      .then(res => {
-        expect(res.statusCode).to.equal(200)
+    const cookie = internals.getCookieFromResponse(res)
 
-        return server.stop()
-      })
+    const res2 = await server.inject({
+      url: '/logout',
+      headers: { cookie }
+    })
+
+    expect(res2.statusCode).to.equal(200)
+
+    await server.stop()
   })
 })
 
