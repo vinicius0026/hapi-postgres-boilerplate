@@ -32,9 +32,9 @@ internals.registerRoutes = function (server, next) {
         description: 'Create users',
         validate: {
           payload: {
-            username: User.model.username.required(),
-            password: User.model.password.required(),
-            scope: User.model.scope.default(['user'])
+            username: User.schema.username.required(),
+            password: User.schema.password.required(),
+            scope: User.schema.scope.default(['user'])
           }
         },
         handler: internals.handlers.create
@@ -61,8 +61,8 @@ internals.registerRoutes = function (server, next) {
         handler: internals.handlers.update,
         validate: {
           payload: {
-            password: User.model.password,
-            scope: User.model.scope
+            password: User.schema.password,
+            scope: User.schema.scope
           }
         }
       }

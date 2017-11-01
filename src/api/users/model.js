@@ -8,7 +8,7 @@ const R = require('ramda')
 const internals = {}
 let User
 
-internals.model = {
+internals.schema = {
   id: Joi.number().min(0),
   username: Joi.string().min(3).max(50).description('User\'s username, used for login'),
   password: Joi.string().min(3).max(50).description('User\'s password, used for login'),
@@ -38,7 +38,7 @@ module.exports = function (di) {
   }
 }
 
-module.exports.model = internals.model
+module.exports.schema = internals.schema
 
 async function create (data) {
   const hash = await Bcrypt.hash(data.password, internals.SALT_ROUNDS)
