@@ -1,12 +1,14 @@
 'use strict'
 
+const _ = require('lodash')
 const Bcrypt = require('bcrypt')
 const Boom = require('boom')
 const Joi = require('joi')
 const R = require('ramda')
 
 const internals = {}
-let User
+
+internals.BaseModel = require('../../util/BaseModel')
 
 internals.schema = {
   id: Joi.number().min(0),
@@ -21,116 +23,120 @@ internals.SALT_ROUNDS = 10
 module.exports = function (di) {
   Object.assign(internals, di)
 
-  const { bookshelf } = internals
+  const { BaseModel, knex } = internals
 
-  User = bookshelf.Model.extend({
-    tableName: 'users',
-    hidden: ['hash']
-  })
+  class User extends BaseModel {
+    static get tableName () {
+      return 'users'
+    }
 
-  return {
-    getValidatedUser,
-    create,
-    read,
-    update,
-    remove,
-    list
+    static async create (data) {
+      const hash = await Bcrypt.hash(data.password, internals.SALT_ROUNDS)
+
+      try {
+        const user = await User.query()
+          .insert((R.omit(['password'], { ...data, hash })))
+
+        return user.id
+      } catch (err) {
+        if (err.message.match(/violates unique constraint "users_username_unique"/)) {
+          throw Boom.badRequest('Username already taken')
+        }
+
+        throw Boom.wrap(err)
+      }
+    }
+
+    static async read (id) {
+      try {
+        const [user] = await User.query().where('id', id).omit(['hash'])
+
+        if (!user) {
+          throw Boom.notFound('User not found')
+        }
+
+        return user
+      } catch (err) {
+        throw Boom.wrap(err)
+      }
+    }
+
+    static async update (id, data) {
+      try {
+        let updateData
+        if (data.password) {
+          const hash = await Bcrypt.hash(data.password, internals.SALT_ROUNDS)
+          updateData = R.omit(['password'], { ...data, hash })
+        } else {
+          updateData = data
+        }
+
+        const user = await User.query().patchAndFetchById(id, updateData).omit(['hash'])
+
+        if (!user) {
+          throw Boom.notFound('User not found')
+        }
+
+        return user
+      } catch (err) {
+        throw Boom.wrap(err)
+      }
+    }
+
+    static async delete (id) {
+      try {
+        const deleted = await User.query().delete().where('id', id)
+
+        if (!deleted) {
+          throw Boom.notFound('User not found')
+        }
+
+        return
+      } catch (err) {
+        throw Boom.wrap(err)
+      }
+    }
+
+    static async list ({ page, limit }) {
+      try {
+        const result = await User
+          .query()
+          .omit(['hash'])
+          .page(page - 1, limit)
+
+        return {
+          pagination: {
+            totalItems: result.total,
+            page,
+            limit
+          },
+          data: result.results
+        }
+      } catch (err) {
+        throw Boom.wrap(err)
+      }
+    }
+
+    static async getValidatedUser (username, password) {
+      const [user] = await User.query().where('username', username)
+
+      if (!user) {
+        return null
+      }
+
+      const validPass = await Bcrypt.compare(password, user.hash)
+
+      if (!validPass) {
+        return null
+      }
+
+      return _.omit(user, ['hash'])
+    }
   }
+
+  User.knex(knex)
+
+  return User
 }
 
 module.exports.schema = internals.schema
-
-async function create (data) {
-  const hash = await Bcrypt.hash(data.password, internals.SALT_ROUNDS)
-
-  try {
-    const user = await User.forge(R.omit(['password'], { ...data, hash })).save()
-
-    return user.get('id')
-  } catch (err) {
-    if (err.message.match(/violates unique constraint "users_username_unique"/)) {
-      throw Boom.badRequest('Username already taken')
-    }
-
-    throw Boom.wrap(err)
-  }
-}
-
-async function read (id) {
-  try {
-    const user = await User.forge({ id }).fetch({ require: true })
-    return user.toJSON()
-  } catch (err) {
-    if (err.message === 'EmptyResponse') {
-      throw Boom.notFound('User not found')
-    }
-
-    throw Boom.wrap(err)
-  }
-}
-
-async function update (id, data) {
-  try {
-    let updateData
-    if (data.password) {
-      const hash = await Bcrypt.hash(data.password, internals.SALT_ROUNDS)
-      updateData = R.omit(['password'], { ...data, hash })
-    } else {
-      updateData = data
-    }
-
-    const user = await User
-      .forge({ id })
-      .fetch({ require: true })
-
-    return user.save(updateData)
-  } catch (err) {
-    if (err.message === 'EmptyResponse') {
-      throw Boom.notFound('User not found')
-    }
-
-    throw Boom.wrap(err)
-  }
-}
-
-async function remove (id) {
-  try {
-    const user = await User
-      .forge({ id })
-      .fetch({ require: true })
-    return user.destroy()
-  } catch (err) {
-    if (err.message === 'EmptyResponse') {
-      throw Boom.notFound('User not found')
-    }
-
-    throw Boom.wrap(err)
-  }
-}
-
-async function list ({ page, limit }) {
-  try {
-    const results = await User.fetchPage({ page, pageSize: limit })
-    return {
-      pagination: {
-        totalItems: results.pagination.rowCount,
-        page,
-        limit
-      },
-      data: results.toJSON()
-    }
-  } catch (err) {
-    throw Boom.wrap(err)
-  }
-}
-
-async function getValidatedUser (username, password) {
-  const user = await User.forge({ username }).fetch({ require: true })
-  const validPass = await Bcrypt.compare(password, user.get('hash'))
-
-  if (!validPass) {
-    return null
-  }
-
-  return user.toJSON()
-}

@@ -13,8 +13,7 @@ const Config = require('../../../src/config')
 const Server = require('../../../src')
 
 const knex = require('knex')(dbConfig)
-const bookshelf = require('bookshelf')(knex)
-const UserModel = require('../../../src/api/users/model')({ bookshelf })
+const UserModel = require('../../../src/api/users/model')({ knex })
 
 const internals = {}
 
@@ -40,9 +39,11 @@ describe('User API Tests', () => {
 
       const list = res.result.data
       expect(list).to.be.an.array()
+      expect(list).to.have.length(1)
       list.every(item => {
         expect(item.username).to.be.a.string()
         expect(item.scope).to.be.an.array()
+        expect(item.hash).to.not.exist()
       })
 
       const pagination = res.result.pagination

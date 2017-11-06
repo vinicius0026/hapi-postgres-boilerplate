@@ -17,11 +17,11 @@ exports.register = (server, options, next) => {
 }
 
 exports.register.attributes = {
-  name: 'UserAPIRouter'
+  name: 'UsersResource'
 }
 
 internals.registerRoutes = function (server, next) {
-  internals.options.bookshelf = server.app.bookshelf
+  internals.options.knex = server.app.knex
   internals.handlers = Handlers(internals.options)
 
   server.route([

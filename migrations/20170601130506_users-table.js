@@ -5,6 +5,7 @@ exports.up = function (knex, Promise) {
       table.string('username').unique()
       table.string('hash')
       table.specificType('scope', 'text[]')
+      table.timestamps()
     })
 }
 
