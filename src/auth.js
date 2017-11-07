@@ -18,7 +18,7 @@ exports.register.attributes = {
 }
 
 internals.setupAuth = function (server, next) {
-  internals.getValidatedUser = UserModel({ bookshelf: server.app.bookshelf }).getValidatedUser
+  internals.getValidatedUser = UserModel({ knex: server.app.knex }).getValidatedUser
 
   server.auth.strategy('session', 'cookie', {
     password: Config.get('/cookieSecret'),

@@ -10,13 +10,13 @@ internals.init = async function (manifest, options) {
   server.ext({
     type: 'onPreStop',
     method: (server, next) => {
-      const { bookshelf } = server.app
+      const { knex } = server.app
 
-      if (!bookshelf) {
+      if (!knex) {
         return next()
       }
 
-      bookshelf.knex.destroy(next)
+      knex.destroy(next)
     }
   })
 
